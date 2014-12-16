@@ -20,7 +20,7 @@ let of_uri uri =
 let to_uri uri = uri
 
 let make ~domain ~path ~public_key =
-  let public_key = Base64.encode ~alphabet:Base64.uri_safe_alphabet public_key in
+  let public_key = Base64.encode ~alphabet:Base64.uri_safe_alphabet ~pad:false public_key in
   of_uri (Uri.make ~scheme:"tilde" ~host:domain ~path ~query:[public_key,[]] ())
 
 let public_key uri =

@@ -17,8 +17,7 @@ clean:
 	$(OCAMLBUILD) -clean
 
 top: build
-	utop -require 'base64 uri containers lwt.ppx lwt.unix ZMQ lwt-zmq sodium' \
-	     -require 'ppx_deriving_yojson cmdliner' \
+	utop -require 'base64 uri containers lwt.ppx lwt.unix ZMQ lwt-zmq yojson cmdliner' \
 	     -I _build/src _build/src/tildelib.cma
 
 gh-pages: doc

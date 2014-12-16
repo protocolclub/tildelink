@@ -9,7 +9,7 @@ let zmq =
 let lookup host port =
   match%lwt Lwt_unix.getaddrinfo host port [] with
   | {Lwt_unix.ai_addr = Lwt_unix.ADDR_INET (inet_addr, port)} :: _ ->
-    Lwt.return (inet_addr, port)
+    Lwt.return (Unix.string_of_inet_addr inet_addr, port)
   | [] -> Lwt.fail (Failure (Printf.sprintf "Cannot look up endpoint %s:%s" host port))
   | _ -> assert false
 
@@ -32,15 +32,10 @@ let load_identity file =
     Lwt.return (pub, sec)
 
 let node host port identity domain =
-  let%lwt inet_addr, port = lookup host port in
-  let%lwt pubkey, seckey  = load_identity identity in
-  let server = ZMQ.Socket.create zmq ZMQ.Socket.rep in
-  begin%lwt
-    ZMQ.Socket.set_curve_server server true;
-    ZMQ.Socket.set_curve_secretkey server seckey;
-    ZMQ.Socket.bind server (Printf.sprintf "tcp://%s:%d" (Unix.string_of_inet_addr inet_addr) port);
-    Lwt.return_unit
-  end
+  let%lwt host, port = lookup host port in
+  let%lwt keypair    = load_identity identity in
+  let%lwt node = Tilde_node.create ~keypair ~domain ~host ~port zmq in
+  Tilde_node.listen node
 
 open Cmdliner
 

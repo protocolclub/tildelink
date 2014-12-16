@@ -1,4 +1,4 @@
 B _build/**/*
 S src/**/*
-PKG base64 uri containers lwt.ppx ZMQ lwt-zmq ppx_deriving_yojson cmdliner
+PKG base64 uri containers lwt.ppx ZMQ lwt-zmq yojson cmdliner
 PKG oUnit

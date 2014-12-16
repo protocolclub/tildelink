@@ -19,15 +19,15 @@ build-test: [
 ]
 depends: [
   "base-unix"
-  "ocamlfind"           {build}
-  "base64"              #{>= "1.1.0"}
+  "ocamlfind"  {build}
+  "base64"     #{>= "1.1.0"}
   "uri"
   "containers"
   "lwt"
   "zmq"
   "lwt-zmq"
-  "ppx_deriving_yojson" #{>= ???}
+  "yojson"
   "cmdliner"
-  "ounit"               {test}
+  "ounit"      {test}
 ]
 available: [ ocaml-version >= "4.02.0" ]
