@@ -10,23 +10,57 @@ let lookup host port =
   match%lwt Lwt_unix.getaddrinfo host port [] with
   | {Lwt_unix.ai_addr = Lwt_unix.ADDR_INET (inet_addr, port)} :: _ ->
     Lwt.return (inet_addr, port)
+  | [] -> Lwt.fail (Failure (Printf.sprintf "Cannot look up endpoint %s:%s" host port))
   | _ -> assert false
 
-let node host port domain =
+let load_identity file =
+  let alphabet, pad = Base64.uri_safe_alphabet, false in
+  if Sys.file_exists file then
+    let%lwt input = Lwt_io.open_file ~mode:Lwt_io.input file in
+    match%lwt Lwt_stream.to_list (Lwt_io.read_lines input) with
+    | [pub; sec] ->
+      Lwt_io.close input >>
+      Lwt.return (Base64.(decode ~alphabet pub, decode ~alphabet sec))
+    | _ -> Lwt.fail (Failure ("Cannot decode identity file " ^ file))
+  else
+    let pub, sec = ZMQ.Curve.keypair () |> CCPair.map_same ZMQ.Z85.decode in
+    let%lwt output = Lwt_io.open_file ~mode:Lwt_io.output file in
+    Lwt_unix.chmod file 0o600 >>
+    Lwt_io.write_lines output
+      (Lwt_stream.of_list Base64.[encode ~alphabet ~pad pub; encode ~alphabet ~pad sec]) >>
+    Lwt_io.close output >>
+    Lwt.return (pub, sec)
+
+let node host port identity domain =
   let%lwt inet_addr, port = lookup host port in
+  let%lwt pubkey, seckey  = load_identity identity in
   let server = ZMQ.Socket.create zmq ZMQ.Socket.rep in
-  ZMQ.Socket.bind server (Printf.sprintf "tcp://%s:%d" (Unix.string_of_inet_addr inet_addr) port);
-  Lwt.return (`Ok ())
+  begin%lwt
+    ZMQ.Socket.set_curve_server server true;
+    ZMQ.Socket.set_curve_secretkey server seckey;
+    ZMQ.Socket.bind server (Printf.sprintf "tcp://%s:%d" (Unix.string_of_inet_addr inet_addr) port);
+    Lwt.return_unit
+  end
 
 open Cmdliner
 
+let identity = ()
+
+let identity_arg =
+  Arg.(value & opt string (Filename.concat (Sys.getenv "HOME") ".tildelink-secret") &
+       info ["i"; "identity"] ~docv:"IDENTITY-FILE"
+            ~doc:"Curve25519 keypair file. \
+                  The keypair file contains two URI-safe base64-encoded lines, \
+                  containing the public and the secret key. \
+                  It is created if nonexistent.")
+
 let host_arg =
-  Arg.(required & opt (some string) None &
+  Arg.(value & opt string "localhost" &
        info ["h"; "host"] ~docv:"HOST" ~doc:"Hostname")
 
 let bind_address_arg =
   Arg.(value & opt string "localhost" &
-       info ["b"; "bind-to"] ~docv:"BIND-TO" ~doc:"Bind to address")
+       info ["b"; "bind-to"] ~docv:"BIND-TO" ~doc:"Socket binding address.")
 
 let port_arg ~doc =
   Arg.(value & opt string (string_of_int 0x7e7e) &
@@ -34,13 +68,29 @@ let port_arg ~doc =
 
 let domain_arg =
   Arg.(required & pos 0 (some string) None &
-       info [] ~docv:"DOMAIN" ~doc:"The tildelink domain this node serves")
+       info [] ~docv:"DOMAIN" ~doc:"The tildelink domain this node serves.")
 
-let run x = Term.(ret (pure Lwt_main.run $ x))
+let run thread =
+  let catch_lwt thread =
+    Lwt_main.run (
+      try%lwt
+        thread >> Lwt.return (`Ok ())
+      with
+      | Failure err ->
+        Lwt.return (`Error (false, err))
+      | Unix.Unix_error (err, syscall, filename) ->
+        let msg =
+          if filename = "" then Printf.sprintf "%s: %s" syscall (Unix.error_message err)
+          else Printf.sprintf "%s: %s: %s" syscall filename (Unix.error_message err)
+        in
+        Lwt.return (`Error (false, msg)))
+  in
+  Term.(ret (pure catch_lwt $ thread))
 
 let node_cmd =
   let doc = "run a tildelink discovery node" in
-  run Term.(pure node $ bind_address_arg $ port_arg ~doc:"Bind to port" $ domain_arg),
+  run Term.(pure node $ bind_address_arg $ port_arg ~doc:"Socket binding port."
+                      $ identity_arg $ domain_arg),
   Term.info "node" ~doc
 
 let default_cmd =
