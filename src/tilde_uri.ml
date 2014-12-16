@@ -19,9 +19,17 @@ let of_uri uri =
 
 let to_uri uri = uri
 
+let to_string = Uri.to_string
+
+let pp = Uri.pp_hum
+
 let make ~domain ~path ~public_key =
   let public_key = Base64.encode ~alphabet:Base64.uri_safe_alphabet ~pad:false public_key in
   of_uri (Uri.make ~scheme:"tilde" ~host:domain ~path ~query:[public_key,[]] ())
+
+let domain uri = CCOpt.get_exn (Uri.host uri)
+
+let path = Uri.path
 
 let public_key uri =
   match Uri.query uri with

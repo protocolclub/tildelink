@@ -1,16 +1,19 @@
 (* open Lwt.Infix *)
 let (>>=), (>>|) = Lwt.(>>=), Lwt.(>|=)
 
+let return_ok x = Lwt.return (`Ok x)
+let return_error x = Lwt.return (`Error (false, x))
+
 let zmq =
   let ctx = ZMQ.Context.create () in
   ZMQ.Context.set_ipv6 ctx true;
   ctx
 
 let lookup host port =
-  match%lwt Lwt_unix.getaddrinfo host port [] with
+  match%lwt Lwt_unix.getaddrinfo host (string_of_int port) [] with
   | {Lwt_unix.ai_addr = Lwt_unix.ADDR_INET (inet_addr, port)} :: _ ->
     Lwt.return (Unix.string_of_inet_addr inet_addr, port)
-  | [] -> Lwt.fail (Failure (Printf.sprintf "Cannot look up endpoint %s:%s" host port))
+  | [] -> Lwt.fail (Failure (Printf.sprintf "Cannot look up endpoint %s:%d" host port))
   | _ -> assert false
 
 let load_identity file =
@@ -31,15 +34,28 @@ let load_identity file =
     Lwt_io.close output >>
     Lwt.return (pub, sec)
 
-let node host port identity domain =
+let node identity host port domain =
   let%lwt host, port = lookup host port in
   let%lwt keypair    = load_identity identity in
   let%lwt node = Tilde_node.create ~keypair ~domain ~host ~port zmq in
   Tilde_node.listen node
 
+let client identity uri port =
+  let%lwt keypair = load_identity identity in
+  Tilde_client.create ~keypair ~uri ~port zmq
+
+let node_info client =
+  match%lwt Tilde_client.node_info client with
+  | `Ok {Tilde_client.node_domain} ->
+    Lwt_io.printlf "Domain: %s" node_domain >>
+    return_ok ()
+  | `Error (code, msg) -> return_error msg
+
 open Cmdliner
 
-let identity = ()
+let tilde_uri =
+  (fun str -> Tilde_uri.of_uri (Uri.of_string str)),
+  (fun fmt uri -> Format.fprintf fmt "%a" Tilde_uri.pp uri)
 
 let identity_arg =
   Arg.(value & opt string (Filename.concat (Sys.getenv "HOME") ".tildelink-secret") &
@@ -58,18 +74,40 @@ let bind_address_arg =
        info ["b"; "bind-to"] ~docv:"BIND-TO" ~doc:"Socket binding address.")
 
 let port_arg ~doc =
-  Arg.(value & opt string (string_of_int 0x7e7e) &
+  Arg.(value & opt int 0x7e7e &
        info ["p"; "port"] ~docv:"PORT" ~doc)
 
 let domain_arg =
   Arg.(required & pos 0 (some string) None &
        info [] ~docv:"DOMAIN" ~doc:"The tildelink domain this node serves.")
 
+let rec try_read files =
+  match files with
+  | [] -> None
+  | file :: files ->
+    try
+      let content = CCOpt.get_exn (CCIO.read_line (open_in file)) in
+      match Tilde_uri.of_uri (Uri.of_string content) with
+      | `Ok uri -> Some uri
+      | `Error msg -> failwith (file ^ ": " ^ msg)
+    with
+    | Sys_error _ -> try_read files
+
+let discovery_uri_arg =
+  let default_uri =
+    try_read ["/etc/tildelink-uri";
+              Filename.concat (Sys.getenv "HOME") ".tildelink-uri"]
+  in
+  Arg.(required & opt (some tilde_uri) default_uri &
+       info ["discovery"] ~docv:"URI"
+            ~doc:"The tilde:// URI of the discovery service. \
+                  By default, taken from ~/.tildelink-uri and /etc/tildelink-uri in that order.")
+
 let run thread =
   let catch_lwt thread =
     Lwt_main.run (
       try%lwt
-        thread >> Lwt.return (`Ok ())
+        thread
       with
       | Failure err ->
         Lwt.return (`Error (false, err))
@@ -84,9 +122,17 @@ let run thread =
 
 let node_cmd =
   let doc = "run a tildelink discovery node" in
-  run Term.(pure node $ bind_address_arg $ port_arg ~doc:"Socket binding port."
-                      $ identity_arg $ domain_arg),
+  run Term.(pure node $ identity_arg $ bind_address_arg $ port_arg ~doc:"Socket binding port."
+                      $ domain_arg),
   Term.info "node" ~doc
+
+let client_term =
+  Term.(pure client $ identity_arg $ discovery_uri_arg $ port_arg ~doc:"Discovery service port.")
+
+let node_info_cmd =
+  let doc = "request information about a tildelink discovery node" in
+  run Term.(pure Lwt.bind $ client_term $ pure node_info),
+  Term.info "info" ~doc
 
 let default_cmd =
   let doc = "a distributed service discovery mechanism" in
@@ -98,6 +144,6 @@ let default_cmd =
   Term.info "tildelink" ~version:"0.1" ~doc ~man
 
 let () =
-  match Term.eval_choice default_cmd [node_cmd] with
+  match Term.eval_choice default_cmd [node_cmd; node_info_cmd] with
   | `Error _ -> exit 1
   | _ -> exit 0

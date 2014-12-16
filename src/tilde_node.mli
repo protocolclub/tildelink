@@ -10,4 +10,4 @@ val create : keypair:string * string -> domain:string ->
 
 (** [listen node] returns a thread that answers messages received
     by [node] forever. *)
-val listen : t -> unit Lwt.t
+val listen : t -> 'a Lwt.t
