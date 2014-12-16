@@ -15,10 +15,14 @@ build-test: [
   "ocamlbuild" "-classic-display" "-use-ocamlfind" "src_test/test_tildelink.byte" "--"
 ]
 depends: [
+  "base-unix"
   "ocamlfind"           {build}
   "base64"              #{>= "1.1.0"}
   "uri"
+  "containers"
+  "lwt"
   "zmq"
+  "lwt-zmq"
   "ppx_deriving_yojson" #{>= ???}
   "cmdliner"
   "ounit"               {test}

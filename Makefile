@@ -1,13 +1,13 @@
 OCAMLBUILD := ocamlbuild -classic-display -use-ocamlfind -j 0
 
 build:
-	$(OCAMLBUILD) src/tildelib.cma src/tildelink.native
+	$(OCAMLBUILD) src/tildelib.cma src/tildelink.d.byte src/tildelink.native
 
 doc:
 	ocamlbuild -use-ocamlfind doc/api.docdir/index.html \
-						 -docflags -t -docflag "API reference for tildelink" \
-						 -docflags '-colorize-code -short-functors -charset utf-8' \
-						 -docflags '-css-style style.css'
+	           -docflags -t -docflag "API reference for tildelink" \
+	           -docflags '-colorize-code -short-functors -charset utf-8' \
+	           -docflags '-css-style style.css'
 	cp doc/style.css api.docdir/
 
 test: build
@@ -17,7 +17,9 @@ clean:
 	$(OCAMLBUILD) -clean
 
 top: build
-	utop -require 'uri base64' -I _build/src _build/src/tildelib.cma
+	utop -require 'base64 uri containers lwt.ppx lwt.unix ZMQ lwt-zmq sodium' \
+	     -require 'ppx_deriving_yojson cmdliner' \
+	     -I _build/src _build/src/tildelib.cma
 
 gh-pages: doc
 	git clone `git config --get remote.origin.url` .gh-pages --reference .

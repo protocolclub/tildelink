@@ -1,4 +1,4 @@
 true: warn(@5@8@10@11@12@14@23@24@26@29@40), bin_annot, safe_string
 
-<src/*>: package(base64 uri cmdliner ZMQ)
+<src/*>: package(base64 uri containers lwt.ppx lwt.unix ZMQ lwt-zmq ppx_deriving_yojson cmdliner)
 <src_test/*>: debug, package(oUnit)
