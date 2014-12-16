@@ -93,6 +93,13 @@ Usage
 
 TODO
 
+OCaml API
+---------
+
+The documentation for the OCaml API is available [online][gh-pages].
+
+[gh-pages]: http://protocolclub.github.io/tildelink/
+
 License
 -------
 
