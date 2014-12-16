@@ -1,0 +1,21 @@
+opam-version: "1.2"
+name: "tildelink"
+version: "0.1"
+maintainer: "Peter Zotov <whitequark@whitequark.org>"
+authors: [ "Peter Zotov <whitequark@whitequark.org>" ]
+license: "MIT"
+homepage: "https://github.com/protocolclub/tildelink"
+bug-reports: "https://github.com/protocolclub/tildelink/issues"
+dev-repo: "git://github.com/protocolclub/tildelink.git"
+build: [
+  "ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
+                         "native-dynlink=%{ocaml-native-dynlink}%"
+]
+build-test: [
+  "ocamlbuild" "-classic-display" "-use-ocamlfind" "src_test/test_tildelink.byte" "--"
+]
+depends: [
+  "ocamlfind"    {build}
+  "ounit"        {test}
+]
+available: [ ocaml-version >= "4.02.0" ]
