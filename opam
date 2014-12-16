@@ -11,6 +11,9 @@ build: [
   "ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
                          "native-dynlink=%{ocaml-native-dynlink}%"
 ]
+install: [
+  "cp" "_build/tildelink.native" "%{bin}%/tildelink"
+]
 build-test: [
   "ocamlbuild" "-classic-display" "-use-ocamlfind" "src_test/test_tildelink.byte" "--"
 ]
