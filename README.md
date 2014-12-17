@@ -12,6 +12,11 @@ to establish connections from the command line.
 
 [zeromq]: http://zeromq.org
 
+Usage
+-----
+
+TODO
+
 Installation
 ------------
 
@@ -69,29 +74,48 @@ The discovery service is a _tildelink_ service that performs two jobs:
 The discovery service uses the [request-reply pattern][reqrep] and
 JSON for serialization.
 
-The requests are of the form `{"command": "<cmd>", ..}`, where
-`<cmd>` is the command name and `..` is command-specific fields.
+The requests are of the form `{"version": "<ver>", "command": "<cmd>", ..}`,
+where `<cmd>` is the command name and `..` is command-specific fields.
 The responses are either of the form `{"ok": ..}`, where `..`
-is a command-specific value, or
-`{"error": {"code": "<code>", "message": "<msg>"}}`,
+is a command-specific value, or `{"error": {"code": "<code>", "message": "<msg>"}}`,
 where `<code>` is a command-specific error code, and `<msg>` is
 a human-readable error message.
+
+Currently, `<ver>` is `1`. If the service is unable to recognize
+the version, an error with code `unknown-version` is returned.
+
+If the service is unable to parse JSON or required fields are missing,
+an error with code `protocol-error` is returned.
 
 [reqrep]: rfc.zeromq.org/spec:28
 
 #### Node information
 
-`{"command": "info"}`
+`{"version": 1, "command": "info"}`
 
 `{"ok": {"domain": "<domain>"}}`
 
 The node information command allows to request metadata from
 the current node. Currently, only node domain is returned.
 
-Usage
------
+#### Service discovery
 
-TODO
+`{"version": 1, "command": "discover", "uri": "<uri>"}`
+
+`{"ok": [["<host>", <port>], ..]}`
+
+`{"error": {"code": "not-found", ..}}`
+
+The service discovery command returns the list of endpoints
+(host:port pairs) associated with the given service.
+
+#### Service list
+
+`{"version": 1, "command": "list"}`
+
+`{"ok": {"<uri>": [["<host>", <port>], ..], ..}`
+
+The service list command returns all registered services.
 
 OCaml API
 ---------

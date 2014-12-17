@@ -34,7 +34,7 @@ let load_identity file =
     Lwt_io.close output >>
     Lwt.return (pub, sec)
 
-let node identity host port domain =
+let run_node identity host port domain =
   let%lwt host, port = lookup host port in
   let%lwt keypair    = load_identity identity in
   let%lwt node = Tilde_node.create ~keypair ~domain ~host ~port zmq in
@@ -44,12 +44,20 @@ let client identity uri port =
   let%lwt keypair = load_identity identity in
   Tilde_client.create ~keypair ~uri ~port zmq
 
-let node_info client =
+let run_info client =
   match%lwt Tilde_client.node_info client with
   | `Ok {Tilde_client.node_domain} ->
     Lwt_io.printlf "Domain: %s" node_domain >>
     return_ok ()
   | `Error (code, msg) -> return_error msg
+
+let run_list client =
+  assert false
+
+let run_discover client =
+  assert false
+
+(* ----------------------------------------------------------- CLI ARGUMENTS *)
 
 open Cmdliner
 
@@ -103,6 +111,8 @@ let discovery_uri_arg =
             ~doc:"The tilde:// URI of the discovery service. \
                   By default, taken from ~/.tildelink-uri and /etc/tildelink-uri in that order.")
 
+(* ------------------------------------------------ CMDLINER-LWT INTEGRATION *)
+
 let run thread =
   let catch_lwt thread =
     Lwt_main.run (
@@ -120,19 +130,39 @@ let run thread =
   in
   Term.(ret (pure catch_lwt $ thread))
 
+(* ----------------------------------------------------- HIGH-LEVEL COMMANDS *)
+
+let docs = "HIGH-LEVEL COMMANDS"
+
 let node_cmd =
   let doc = "run a tildelink discovery node" in
-  run Term.(pure node $ identity_arg $ bind_address_arg $ port_arg ~doc:"Socket binding port."
-                      $ domain_arg),
-  Term.info "node" ~doc
+  run Term.(pure run_node $ identity_arg $ bind_address_arg
+                          $ port_arg ~doc:"Socket binding port." $ domain_arg),
+  Term.info "node" ~doc ~docs
 
 let client_term =
   Term.(pure client $ identity_arg $ discovery_uri_arg $ port_arg ~doc:"Discovery service port.")
 
-let node_info_cmd =
+(* ------------------------------------------------------ LOW-LEVEL COMMANDS *)
+
+let docs = "LOW-LEVEL COMMANDS"
+
+let info_cmd =
   let doc = "request information about a tildelink discovery node" in
-  run Term.(pure Lwt.bind $ client_term $ pure node_info),
-  Term.info "info" ~doc
+  run Term.(pure Lwt.bind $ client_term $ pure run_info),
+  Term.info "info" ~doc ~docs
+
+let list_cmd =
+  let doc = "request service list" in
+  run Term.(pure Lwt.bind $ client_term $ pure run_list),
+  Term.info "list" ~doc ~docs
+
+let discover_cmd =
+  let doc = "discover a service" in
+  run Term.(pure Lwt.bind $ client_term $ pure run_discover),
+  Term.info "discover" ~doc ~docs
+
+(* -------------------------------------------------------------- CLI SETUP *)
 
 let default_cmd =
   let doc = "a distributed service discovery mechanism" in
@@ -144,6 +174,6 @@ let default_cmd =
   Term.info "tildelink" ~version:"0.1" ~doc ~man
 
 let () =
-  match Term.eval_choice default_cmd [node_cmd; node_info_cmd] with
+  match Term.eval_choice default_cmd [node_cmd; info_cmd; list_cmd; discover_cmd] with
   | `Error _ -> exit 1
   | _ -> exit 0

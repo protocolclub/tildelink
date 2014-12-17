@@ -21,6 +21,8 @@ let to_uri uri = uri
 
 let to_string = Uri.to_string
 
+let of_string str = Uri.of_string str |> of_uri
+
 let pp = Uri.pp_hum
 
 let make ~domain ~path ~public_key =

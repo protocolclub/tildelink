@@ -11,6 +11,9 @@ val of_uri : Uri.t -> [ `Ok of t | `Error of string ]
     [uri]. *)
 val to_uri : t -> Uri.t
 
+(** [of_string str] converts string [str] to a [tilde://] URI. *)
+val of_string : string -> [ `Ok of t | `Error of string ]
+
 (** [to_string uri] converts the [tilde://] URI [uri] to a string. *)
 val to_string : t -> string
 
