@@ -25,7 +25,7 @@ let create ~keypair:(public_key,secret_key) ~uri ~port zmq =
 module J = Yojson.Basic
 
 let make_cmd name fields =
-  `Assoc (("command", `String name) :: fields)
+  `Assoc (("version", `Int 1) :: ("command", `String name) :: fields)
 
 let roundtrip request parse socket =
   let json = J.to_string request in

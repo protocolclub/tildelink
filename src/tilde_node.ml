@@ -78,12 +78,16 @@ let rec handle ({ socket; services } as node) id request =
   in
   try%lwt
     let json = J.from_string request in
-    match J.Util.(member "command" json |> to_string) with
-    | "node-info" -> reply (do_node_info json socket)
-    | "service-list" -> reply (do_service_list services)
-    | "discover" -> reply (do_discover json services)
-    | cmd ->
-      reply (make_error "unknown-command" ("Unknown command " ^ cmd))
+    match J.Util.(json |> member "version" |> to_int) with
+    | 1 ->
+      begin match J.Util.(json |> member "command" |> to_string) with
+      | "node-info" -> reply (do_node_info json socket)
+      | "service-list" -> reply (do_service_list services)
+      | "discover" -> reply (do_discover json services)
+      | cmd ->
+        reply (make_error "unknown-command" ("Unknown command " ^ cmd))
+      end
+    | version -> reply (make_error "unknown-version" ("Unknown version " ^ string_of_int version))
   with
   | J.Util.Type_error (msg, json)
   | J.Util.Undefined (msg, json) ->
