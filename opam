@@ -20,7 +20,7 @@ build-test: [
 depends: [
   "base-unix"
   "ocamlfind"  {build}
-  "base64"     #{>= "1.1.0"}
+  "base64"     {>= "1.1.0"}
   "uri"
   "containers"
   "lwt"

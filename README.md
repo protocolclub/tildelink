@@ -17,7 +17,6 @@ Installation
 
 _tildelink_ can be installed via [OPAM](https://opam.ocaml.org):
 
-    opam pin add base64 git://github.com/whitequark/ocaml-base64
     opam pin add -y tildelink .
 
 Architecture
