@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Tilde_uri.html">
+<link rel="next" href="Tilde_client.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Tilde_uri" rel="Chapter" href="Tilde_uri.html">
+<link title="Tilde_node" rel="Chapter" href="Tilde_node.html">
+<link title="Tilde_client" rel="Chapter" href="Tilde_client.html">
+<link title="Tilde_endpoint" rel="Chapter" href="Tilde_endpoint.html"><title>API reference for tildelink : Tilde_node</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Tilde_uri.html" title="Tilde_uri">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Tilde_client.html" title="Tilde_client">Next</a>
+</div>
+<h1>Module <a href="type_Tilde_node.html">Tilde_node</a></h1>
+
+<pre><span class="keyword">module</span> Tilde_node: <code class="code"><span class="keyword">sig</span></code> <a href="Tilde_node.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Tildelink discovery node<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+The type of tildelink discovery nodes<br>
+</div>
+
+
+<pre><code><span id="TYPEservice"><span class="keyword">type</span> <code class="type"></code>service</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTservice.expires">expires</span>&nbsp;: <code class="type">float option</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTservice.endpoints">endpoints</span>&nbsp;: <code class="type"><a href="Tilde_endpoint.html#TYPEt">Tilde_endpoint.t</a> list</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info ">
+The type of tildelink service entries.<br>
+</div>
+
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">keypair:string * string -><br>       domain:string -><br>       host:string -> port:int -> ZMQ.Context.t -> <a href="Tilde_node.html#TYPEt">t</a> Lwt.t</code></pre><div class="info ">
+<code class="code">create ~secret_key ~domain ~listen_uri zmq_context</code> creates a node
+    listening at ZeroMQ URI <code class="code">listen_uri</code>.<br>
+</div>
+
+<pre><span id="VALlisten"><span class="keyword">val</span> listen</span> : <code class="type"><a href="Tilde_node.html#TYPEt">t</a> -> 'a Lwt.t</code></pre><div class="info ">
+<code class="code">listen node</code> returns a thread that answers messages and expires
+    old entries. The thread never returns.<br>
+</div>
+
+<pre><span id="VALservices"><span class="keyword">val</span> services</span> : <code class="type"><a href="Tilde_node.html#TYPEt">t</a> -> (<a href="Tilde_uri.html#TYPEt">Tilde_uri.t</a>, <a href="Tilde_node.html#TYPEservice">service</a>) Hashtbl.t</code></pre><div class="info ">
+<code class="code">services node</code> returns a list of all services registered in <code class="code">node</code>.<br>
+</div>
+</body></html>

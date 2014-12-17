@@ -1,0 +1,125 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Tilde_uri" rel="Chapter" href="Tilde_uri.html">
+<link title="Tilde_node" rel="Chapter" href="Tilde_node.html">
+<link title="Tilde_client" rel="Chapter" href="Tilde_client.html">
+<link title="Tilde_endpoint" rel="Chapter" href="Tilde_endpoint.html"><title>API reference for tildelink : Index of values</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Index of values</h1>
+<table>
+<tr><td align="left"><br>C</td></tr>
+<tr><td><a href="Tilde_client.html#VALcreate">create</a> [<a href="Tilde_client.html">Tilde_client</a>]</td>
+<td><div class="info">
+<code class="code">create uri</code> creates a client with local identity <code class="code">keypair</code>
+    and discovery service URI <code class="code">uri</code>.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_node.html#VALcreate">create</a> [<a href="Tilde_node.html">Tilde_node</a>]</td>
+<td><div class="info">
+<code class="code">create ~secret_key ~domain ~listen_uri zmq_context</code> creates a node
+    listening at ZeroMQ URI <code class="code">listen_uri</code>.
+</div>
+</td></tr>
+<tr><td align="left"><br>D</td></tr>
+<tr><td><a href="Tilde_client.html#VALdiscover">discover</a> [<a href="Tilde_client.html">Tilde_client</a>]</td>
+<td><div class="info">
+<code class="code">discover</code> returns the list of endpoints corresponding to the service,
+    if one is registered at the node <code class="code">client</code> is connected to.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_uri.html#VALdomain">domain</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">domain uri</code> returns the domain, extracted from <code class="code">uri</code>.
+</div>
+</td></tr>
+<tr><td align="left"><br>L</td></tr>
+<tr><td><a href="Tilde_node.html#VALlisten">listen</a> [<a href="Tilde_node.html">Tilde_node</a>]</td>
+<td><div class="info">
+<code class="code">listen node</code> returns a thread that answers messages and expires
+    old entries.
+</div>
+</td></tr>
+<tr><td align="left"><br>M</td></tr>
+<tr><td><a href="Tilde_uri.html#VALmake">make</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">make ~domain ~path ~public_key</code> creates a <code class="code">tilde://</code> URI from
+    its components.
+</div>
+</td></tr>
+<tr><td align="left"><br>N</td></tr>
+<tr><td><a href="Tilde_client.html#VALnode_info">node_info</a> [<a href="Tilde_client.html">Tilde_client</a>]</td>
+<td><div class="info">
+<code class="code">node_info client</code> returns information about the node <code class="code">client</code>
+    is connected to.
+</div>
+</td></tr>
+<tr><td align="left"><br>O</td></tr>
+<tr><td><a href="Tilde_uri.html#VALof_string">of_string</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">of_string str</code> converts string <code class="code">str</code> to a <code class="code">tilde://</code> URI.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_uri.html#VALof_uri">of_uri</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">of_uri uri</code> validates <code class="code">uri</code> as a <code class="code">tilde://</code> URI or returns
+    an error.
+</div>
+</td></tr>
+<tr><td align="left"><br>P</td></tr>
+<tr><td><a href="Tilde_uri.html#VALpath">path</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">path uri</code> returns the path, extracted from <code class="code">uri</code>.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_uri.html#VALpp">pp</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">pp fmt uri</code> pretty-prints the <code class="code">tilde://</code> URI <code class="code">uri</code>.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_uri.html#VALpublic_key">public_key</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">public_key uri</code> returns the Curve25519 public key in raw form,
+    extracted from <code class="code">uri</code>.
+</div>
+</td></tr>
+<tr><td align="left"><br>S</td></tr>
+<tr><td><a href="Tilde_client.html#VALservice_list">service_list</a> [<a href="Tilde_client.html">Tilde_client</a>]</td>
+<td><div class="info">
+<code class="code">service_list client</code> returns the list of all services registered
+    at the node <code class="code">client</code> is connected to.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_node.html#VALservices">services</a> [<a href="Tilde_node.html">Tilde_node</a>]</td>
+<td><div class="info">
+<code class="code">services node</code> returns a list of all services registered in <code class="code">node</code>.
+</div>
+</td></tr>
+<tr><td align="left"><br>T</td></tr>
+<tr><td><a href="Tilde_endpoint.html#VALto_string">to_string</a> [<a href="Tilde_endpoint.html">Tilde_endpoint</a>]</td>
+<td><div class="info">
+<code class="code">to_string endp</code> converts <code class="code">endp</code> to a <code class="code">host:port</code> string representation.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_uri.html#VALto_string">to_string</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">to_string uri</code> converts the <code class="code">tilde://</code> URI <code class="code">uri</code> to a string.
+</div>
+</td></tr>
+<tr><td><a href="Tilde_uri.html#VALto_uri">to_uri</a> [<a href="Tilde_uri.html">Tilde_uri</a>]</td>
+<td><div class="info">
+<code class="code">to_uri uri</code> returns an <code class="code"><span class="constructor">Uri</span>.t</code> corresponding to <code class="code">tilde://</code> URI
+    <code class="code">uri</code>.
+</div>
+</td></tr>
+</table>
+</body>
+</html>

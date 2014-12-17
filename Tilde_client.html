@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Tilde_node.html">
+<link rel="next" href="Tilde_endpoint.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Tilde_uri" rel="Chapter" href="Tilde_uri.html">
+<link title="Tilde_node" rel="Chapter" href="Tilde_node.html">
+<link title="Tilde_client" rel="Chapter" href="Tilde_client.html">
+<link title="Tilde_endpoint" rel="Chapter" href="Tilde_endpoint.html"><title>API reference for tildelink : Tilde_client</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Tilde_node.html" title="Tilde_node">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Tilde_endpoint.html" title="Tilde_endpoint">Next</a>
+</div>
+<h1>Module <a href="type_Tilde_client.html">Tilde_client</a></h1>
+
+<pre><span class="keyword">module</span> Tilde_client: <code class="code"><span class="keyword">sig</span></code> <a href="Tilde_client.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+Tildelink discovery client<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+The type of tildelink discovery clients.<br>
+</div>
+
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">keypair:string * string -><br>       uri:<a href="Tilde_uri.html#TYPEt">Tilde_uri.t</a> -> port:int -> ZMQ.Context.t -> <a href="Tilde_client.html#TYPEt">t</a> Lwt.t</code></pre><div class="info ">
+<code class="code">create uri</code> creates a client with local identity <code class="code">keypair</code>
+    and discovery service URI <code class="code">uri</code>. As <code class="code">tilde://</code> URIs may not
+    contain the port, it is provided separately.<br>
+</div>
+
+<pre><code><span id="TYPEnode_info"><span class="keyword">type</span> <code class="type"></code>node_info</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTnode_info.node_domain">node_domain</span>&nbsp;: <code class="type">string</code>;</code></td>
+
+</tr></table>
+}
+
+<div class="info ">
+The type of discovery node information.<br>
+</div>
+
+
+<pre><span id="TYPEresult"><span class="keyword">type</span> <code class="type">'a</code> result</span> = <code class="type">('a, string * string) CCError.t</code> </pre>
+<div class="info ">
+The type of request results. The error is comprised of <code class="code">code, message</code>.<br>
+</div>
+
+
+<pre><span id="VALnode_info"><span class="keyword">val</span> node_info</span> : <code class="type"><a href="Tilde_client.html#TYPEt">t</a> -> <a href="Tilde_client.html#TYPEnode_info">node_info</a> <a href="Tilde_client.html#TYPEresult">result</a> Lwt.t</code></pre><div class="info ">
+<code class="code">node_info client</code> returns information about the node <code class="code">client</code>
+    is connected to.<br>
+</div>
+
+<pre><span id="VALservice_list"><span class="keyword">val</span> service_list</span> : <code class="type"><a href="Tilde_client.html#TYPEt">t</a> -><br>       (<a href="Tilde_uri.html#TYPEt">Tilde_uri.t</a> * <a href="Tilde_endpoint.html#TYPEt">Tilde_endpoint.t</a> list) list <a href="Tilde_client.html#TYPEresult">result</a> Lwt.t</code></pre><div class="info ">
+<code class="code">service_list client</code> returns the list of all services registered
+    at the node <code class="code">client</code> is connected to.<br>
+</div>
+
+<pre><span id="VALdiscover"><span class="keyword">val</span> discover</span> : <code class="type"><a href="Tilde_uri.html#TYPEt">Tilde_uri.t</a> -><br>       <a href="Tilde_client.html#TYPEt">t</a> -> <a href="Tilde_endpoint.html#TYPEt">Tilde_endpoint.t</a> list <a href="Tilde_client.html#TYPEresult">result</a> Lwt.t</code></pre><div class="info ">
+<code class="code">discover</code> returns the list of endpoints corresponding to the service,
+    if one is registered at the node <code class="code">client</code> is connected to.<br>
+</div>
+</body></html>
