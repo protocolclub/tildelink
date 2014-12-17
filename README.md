@@ -49,8 +49,8 @@ public key, encoded using Base64 with URL- and filename-safe alphabet
 (specified in [RFC4648][]). Since any 32 bytes constitute a valid
 Curve25519 public key, no validation besides length is required.
 
-The host component contains an arbitrary string that identifies
-a node. The path component contains an arbitrary string starting
+The host component contains a FQDN that identifies a node.
+The path component contains an arbitrary string starting
 with `/` that identifies a service logically associated with a node;
 by convention:
 
