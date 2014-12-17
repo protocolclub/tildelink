@@ -102,7 +102,7 @@ the current node. Currently, only node domain is returned.
 
 `{"version": 1, "command": "service-list"}`
 
-`{"ok": {"<uri>": [["<host>", <port>], ..], ..}`
+`{"ok": {"<uri>": [{"host": "<host>", "port": <port>}, ..], ..}`
 
 The service list command returns all registered services.
 
@@ -110,7 +110,7 @@ The service list command returns all registered services.
 
 `{"version": 1, "command": "discover", "uri": "<uri>"}`
 
-`{"ok": [["<host>", <port>], ..]}`
+`{"ok": [{"host": "<host>", "port": <port>}, ..]}`
 
 `{"error": {"code": "not-found", ..}}`
 
