@@ -14,6 +14,17 @@ type node_info = {
   node_domain : string;
 }
 
-(** [node_info client] returns information about the node the client
+(** The type of request results. The error is comprised of [code, message]. *)
+type 'a result = ('a, string * string) CCError.t
+
+(** [node_info client] returns information about the node [client]
     is connected to. *)
-val node_info : t -> (node_info, string * string) CCError.t Lwt.t
+val node_info : t -> node_info result Lwt.t
+
+(** [service_list client] returns the list of all services registered
+    at the node [client] is connected to.  *)
+val service_list : t -> (Tilde_uri.t * Tilde_endpoint.t list) list result Lwt.t
+
+(** [discover] returns the list of endpoints corresponding to the service,
+    if one is registered at the node [client] is connected to. *)
+val discover : Tilde_uri.t -> t -> Tilde_endpoint.t list result Lwt.t

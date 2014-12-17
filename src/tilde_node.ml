@@ -4,28 +4,31 @@ type service = {
 }
 
 type t = {
-  router    : [`Router] Lwt_zmq.Socket.t;
+  socket    : [`Router] Lwt_zmq.Socket.t;
   services  : (Tilde_uri.t, service) Hashtbl.t;
 }
 
 let section = Lwt_log.Section.make "node"
 
 let create ~keypair:(public_key,secret_key) ~domain ~host ~port zmq =
-  let router = ZMQ.Socket.create zmq ZMQ.Socket.router in
+  let socket = ZMQ.Socket.create zmq ZMQ.Socket.router in
   begin%lwt
-    ZMQ.Socket.set_linger_period router 0;
-    ZMQ.Socket.set_identity router domain;
-    ZMQ.Socket.set_curve_server router true;
-    ZMQ.Socket.set_curve_secretkey router secret_key;
-    ZMQ.Socket.set_router_mandatory router true; (* for debugging *)
+    ZMQ.Socket.set_linger_period socket 0;
+    ZMQ.Socket.set_identity socket domain;
+    ZMQ.Socket.set_curve_server socket true;
+    ZMQ.Socket.set_curve_secretkey socket secret_key;
+    ZMQ.Socket.set_router_mandatory socket true; (* for debugging *)
     let listen_uri = Printf.sprintf "tcp://%s:%d" host port in
-    ZMQ.Socket.bind router listen_uri;
+    ZMQ.Socket.bind socket listen_uri;
     Lwt_log.info_f ~section "listening on %s" listen_uri >>
     let uri = CCError.get_exn (Tilde_uri.make ~domain ~path:"/" ~public_key) in
     Lwt_log.notice_f ~section "node %s created" (Tilde_uri.to_string uri) >>
     let services = Hashtbl.create 16 in
-    Hashtbl.add services uri { expires = None; endpoints = [()] };
-    Lwt.return { router = Lwt_zmq.Socket.of_socket router; services; }
+    Hashtbl.add services uri {
+      expires = None;
+      endpoints = Tilde_endpoint.[{ host = domain; port; }];
+    };
+    Lwt.return { socket = Lwt_zmq.Socket.of_socket socket; services; }
   end
 
 let services { services } = services
@@ -37,15 +40,16 @@ let make_error code msg =
   `Assoc ["error", `Assoc ["code", `String code; "message", `String msg]]
 
 let make_endpoints =
-  List.map (fun x -> `String (Tilde_endpoint.to_string x))
+  List.map (fun { Tilde_endpoint.host; port } ->
+    `Assoc ["host", `String host; "port", `Int port])
 
 module J = Yojson.Basic
 
-let do_node request router =
-  let domain = ZMQ.Socket.get_identity (Lwt_zmq.Socket.to_socket router) in
+let do_node_info request socket =
+  let domain = ZMQ.Socket.get_identity (Lwt_zmq.Socket.to_socket socket) in
   make_ok (`Assoc ["domain", `String domain])
 
-let do_list services =
+let do_service_list services =
   services |>
   CCHashtbl.to_list |>
   List.map (fun (uri, {endpoints}) ->
@@ -65,18 +69,18 @@ let string_of_id (id:Lwt_zmq.Socket.Router.id_t) =
   let id = (id :> string) in
   if id.[0] = '\x00' then Base64.encode id else String.escaped id
 
-let rec handle ({ router; services } as node) id request =
+let rec handle ({ socket; services } as node) id request =
   let reply json =
     let reply = J.to_string json in
     Lwt_log.debug_f ~section "%s: send %s" (string_of_id id) reply >>
-    Lwt_zmq.Socket.Router.send router id [""; reply] >>
+    Lwt_zmq.Socket.Router.send socket id [""; reply] >>
     listen node
   in
   try%lwt
     let json = J.from_string request in
     match J.Util.(member "command" json |> to_string) with
-    | "info" -> reply (do_node json router)
-    | "list" -> reply (do_list services)
+    | "node-info" -> reply (do_node_info json socket)
+    | "service-list" -> reply (do_service_list services)
     | "discover" -> reply (do_discover json services)
     | cmd ->
       reply (make_error "unknown-command" ("Unknown command " ^ cmd))
@@ -90,8 +94,8 @@ let rec handle ({ router; services } as node) id request =
     Lwt_log.error_f ~section ~exn "%s: exception" (string_of_id id) >>
     listen node
 
-and listen ({ router; services } as node) =
-  match%lwt Lwt_zmq.Socket.Router.recv router with
+and listen ({ socket; services } as node) =
+  match%lwt Lwt_zmq.Socket.Router.recv socket with
   | id, [""; msg] ->
     Lwt_log.debug_f ~section "%s: recv %s" (string_of_id id) msg >>
     handle node id msg

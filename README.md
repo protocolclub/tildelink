@@ -91,12 +91,20 @@ an error with code `protocol-error` is returned.
 
 #### Node information
 
-`{"version": 1, "command": "info"}`
+`{"version": 1, "command": "node-info"}`
 
 `{"ok": {"domain": "<domain>"}}`
 
 The node information command allows to request metadata from
 the current node. Currently, only node domain is returned.
+
+#### Service list
+
+`{"version": 1, "command": "service-list"}`
+
+`{"ok": {"<uri>": [["<host>", <port>], ..], ..}`
+
+The service list command returns all registered services.
 
 #### Service discovery
 
@@ -108,14 +116,6 @@ the current node. Currently, only node domain is returned.
 
 The service discovery command returns the list of endpoints
 (host:port pairs) associated with the given service.
-
-#### Service list
-
-`{"version": 1, "command": "list"}`
-
-`{"ok": {"<uri>": [["<host>", <port>], ..], ..}`
-
-The service list command returns all registered services.
 
 OCaml API
 ---------

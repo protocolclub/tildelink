@@ -44,22 +44,36 @@ let client identity uri port =
   let%lwt keypair = load_identity identity in
   Tilde_client.create ~keypair ~uri ~port zmq
 
-let run_info client =
+let run_node_info client =
   match%lwt Tilde_client.node_info client with
-  | `Ok {Tilde_client.node_domain} ->
+  | `Ok { Tilde_client.node_domain } ->
     Lwt_io.printlf "Domain: %s" node_domain >>
     return_ok ()
   | `Error (code, msg) -> return_error msg
 
 let run_list client =
-  assert false
+  match%lwt Tilde_client.service_list client with
+  | `Ok services ->
+    Lwt_io.printl "Services:" >>= fun () ->
+    services |> List.map fst |> List.map Tilde_uri.to_string |>
+    Lwt_list.iter_s (Lwt_io.printlf " * %s") >>
+    return_ok ()
+  | `Error (code, msg) -> return_error msg
 
-let run_discover client =
-  assert false
+let run_discover uri client =
+  match%lwt Tilde_client.discover uri client with
+  | `Ok endpoints ->
+    Lwt_io.printl "Endpoints:" >>= fun () ->
+    endpoints |> List.map Tilde_endpoint.to_string |>
+    Lwt_list.iter_s (Lwt_io.printlf " * %s") >>
+    return_ok ()
+  | `Error (code, msg) -> return_error msg
 
 (* ----------------------------------------------------------- CLI ARGUMENTS *)
 
 open Cmdliner
+
+let sdocs = "COMMON OPTIONS"
 
 let tilde_uri =
   (fun str -> Tilde_uri.of_uri (Uri.of_string str)),
@@ -111,6 +125,10 @@ let discovery_uri_arg =
             ~doc:"The tilde:// URI of the discovery service. \
                   By default, taken from ~/.tildelink-uri and /etc/tildelink-uri in that order.")
 
+let service_uri_arg =
+  Arg.(required & pos 0 (some tilde_uri) None &
+       info [] ~docv:"URI" ~doc:"The tilde:// URI of the target service.")
+
 (* ------------------------------------------------ CMDLINER-LWT INTEGRATION *)
 
 let run thread =
@@ -138,29 +156,31 @@ let node_cmd =
   let doc = "run a tildelink discovery node" in
   run Term.(pure run_node $ identity_arg $ bind_address_arg
                           $ port_arg ~doc:"Socket binding port." $ domain_arg),
-  Term.info "node" ~doc ~docs
+  Term.info "node" ~doc ~docs ~sdocs
 
 let client_term =
   Term.(pure client $ identity_arg $ discovery_uri_arg $ port_arg ~doc:"Discovery service port.")
 
-(* ------------------------------------------------------ LOW-LEVEL COMMANDS *)
+(* ---------------------------------------------------- EXPLORATORY COMMANDS *)
 
-let docs = "LOW-LEVEL COMMANDS"
+let docs = "EXPLORATORY COMMANDS"
 
-let info_cmd =
-  let doc = "request information about a tildelink discovery node" in
-  run Term.(pure Lwt.bind $ client_term $ pure run_info),
-  Term.info "info" ~doc ~docs
+let node_info_cmd =
+  let doc = "print information about a tildelink discovery node" in
+  run Term.(pure Lwt.bind $ client_term $ pure run_node_info),
+  Term.info "node-info" ~doc ~docs ~sdocs
 
-let list_cmd =
-  let doc = "request service list" in
-  run Term.(pure Lwt.bind $ client_term $ pure run_list),
-  Term.info "list" ~doc ~docs
+let service_list_cmd =
+  let doc = "print service list" in
+  run Term.(pure (fun client -> client >>= run_list)
+                 $ client_term),
+  Term.info "service-list" ~doc ~docs ~sdocs
 
 let discover_cmd =
-  let doc = "discover a service" in
-  run Term.(pure Lwt.bind $ client_term $ pure run_discover),
-  Term.info "discover" ~doc ~docs
+  let doc = "print service endpoints" in
+  run Term.(pure (fun uri client -> client >>= run_discover uri)
+                 $ service_uri_arg $ client_term),
+  Term.info "discover" ~doc ~docs ~sdocs
 
 (* -------------------------------------------------------------- CLI SETUP *)
 
@@ -171,9 +191,13 @@ let default_cmd =
     `P "File bug reports at https://github.com/protocolclub/tildelink/issues.";
   ] in
   Term.(ret (pure (`Help (`Pager, None)))),
-  Term.info "tildelink" ~version:"0.1" ~doc ~man
+  Term.info "tildelink" ~version:"0.1" ~doc ~man ~sdocs
 
 let () =
-  match Term.eval_choice default_cmd [node_cmd; info_cmd; list_cmd; discover_cmd] with
+  let services = [
+    node_cmd;
+    node_info_cmd; service_list_cmd; discover_cmd
+  ] in
+  match Term.eval_choice default_cmd services with
   | `Error _ -> exit 1
   | _ -> exit 0
